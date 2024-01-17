@@ -10,19 +10,23 @@ import (
 
 func Create(logger *slog.Logger, gotenClient *pdfClient.PdfClient) func(input *GenerateInput) (*GenerateOutput, error) {
 	return func(input *GenerateInput) (*GenerateOutput, error) {
-		name := input.Body.RecipientName
-		addr := input.Body.RecipientAddress
-		email := input.Body.RecipientEmail
-		imageName := input.Body.Logo
-		imagePath := fmt.Sprintf("./templates/images/%s", imageName)
+		imagePath := fmt.Sprintf("./templates/images/%s", input.Body.Logo)
 		image, err := utils.GetImageBase64(imagePath)
+
 		if err != nil {
 			logger.Error(err.Error())
 			return nil, err
 		}
-		component := templates.Hello(name, addr, email, image)
+		component := templates.Hello(
+			input.Body.InvoiceID,
+			input.Body.RecipientName,
+			input.Body.RecipientAddress,
+			input.Body.RecipientEmail,
+			image,
+		)
 		err = gotenClient.GeneratePdfFromComponent(component)
 		if err != nil {
+			logger.Error(err.Error())
 			return nil, err
 		}
 		return &GenerateOutput{}, nil
