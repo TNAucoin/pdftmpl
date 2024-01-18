@@ -15,8 +15,8 @@ RUN go mod tidy && \
 FROM alpine
 
 # Create and switch to a user
-RUN adduser -D -g '' appuser
-USER appuser
+#RUN adduser -D -g '' appuser
+#USER appuser
 
 # Copy only the built binary from the build stage
 COPY --from=build-env /myapp/bin/api /bin/api

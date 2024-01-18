@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pdfgen-app-config
+  namespace: pdfgen
+  labels:
+    app: pdfgen-app-config
+data:
+  SERVER_PORT: '8000'
+  SERVER_TIMEOUT_READ: '3s'
+  SERVER_TIMEOUT_IDLE: '5s'
+  SERVER_TIMEOUT_WRITE: '3s'
+  GOTEN_HOST: 'gotenberg.pdfgen'
+  GOTEN_PORT: '3000'
+  OUT_VOLUME_PATH: '/var/containerOut'

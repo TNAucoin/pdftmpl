@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: "pdf-vol"
+  namespace: pdfgen
+spec:
+  capacity:
+    storage: "2Gi"
+  accessModes:
+    - "ReadWriteOnce"
+  hostPath:
+    path: "/data/pdf-vol"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "pdf-pvc"
+  namespace: pdfgen
+spec:
+    storageClassName: ""
+    volumeName: pdf-vol
+    accessModes:
+        - "ReadWriteOnce"
+    resources:
+        requests:
+          storage: "1Gi"
