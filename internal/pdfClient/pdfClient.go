@@ -8,7 +8,6 @@ import (
 	"github.com/tnaucoin/pdftmpl/config"
 	"io"
 	"log"
-	"log/slog"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -18,11 +17,10 @@ import (
 type PdfClient struct {
 	baseURI    string
 	config     config.ConfGoten
-	logger     *slog.Logger
 	httpClient *http.Client
 }
 
-func New(gotenConfig config.ConfGoten, logger *slog.Logger) *PdfClient {
+func New(gotenConfig config.ConfGoten) *PdfClient {
 	c := &http.Client{
 		Timeout: time.Duration(5) * time.Second,
 	}
@@ -32,7 +30,6 @@ func New(gotenConfig config.ConfGoten, logger *slog.Logger) *PdfClient {
 		baseURI:    baseUri,
 		config:     gotenConfig,
 		httpClient: c,
-		logger:     logger,
 	}
 }
 
@@ -47,18 +44,15 @@ func (p *PdfClient) createFormData(buffer *bytes.Buffer, fieldName, fileName str
 	multipartWriter := multipart.NewWriter(&formData)
 	formFile, err := multipartWriter.CreateFormFile(fieldName, fileName)
 	if err != nil {
-		p.logger.Error(err.Error())
 		return bytes.Buffer{}, "", err
 	}
 	_, err = io.Copy(formFile, buffer)
 	if err != nil {
-		p.logger.Error(err.Error())
 		return bytes.Buffer{}, "", err
 	}
 	// Important: Close the multipart writer so it writes the ending boundary.
 	err = multipartWriter.Close()
 	if err != nil {
-		p.logger.Error(err.Error())
 		return bytes.Buffer{}, "", err
 	}
 	return formData, multipartWriter.FormDataContentType(), nil
@@ -76,15 +70,8 @@ func (p *PdfClient) convertHTMLToPDF(formData bytes.Buffer, contentType string) 
 	// Send off the request
 	resp, err := p.httpClient.Do(req)
 	// Always ensure response body gets closed
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			p.logger.Error(err.Error())
-		}
-	}(resp.Body)
-
+	defer resp.Body.Close()
 	if err != nil {
-		p.logger.Error(err.Error())
 		return err
 	}
 
@@ -95,15 +82,12 @@ func (p *PdfClient) convertHTMLToPDF(formData bytes.Buffer, contentType string) 
 		filePath := fmt.Sprintf("%s/test.pdf", p.config.VolumeOutPath)
 		out, err := os.Create(filePath)
 		if err != nil {
-			p.logger.Error(err.Error())
 			return err
 		}
 		_, err = io.Copy(out, resp.Body)
 		if err != nil {
-			p.logger.Error(err.Error())
 			return err
 		}
-		p.logger.Info("success!")
 	}
 	return nil
 }

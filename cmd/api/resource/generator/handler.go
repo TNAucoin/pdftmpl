@@ -8,14 +8,14 @@ import (
 	"log/slog"
 )
 
-func Create(logger *slog.Logger, gotenClient *pdfClient.PdfClient) func(input *GenerateInput) (*GenerateOutput, error) {
-	return func(input *GenerateInput) (*GenerateOutput, error) {
+func Create(logger *slog.Logger, gotenClient *pdfClient.PdfClient) func(input *GenerateInput) error {
+	return func(input *GenerateInput) error {
 		imagePath := fmt.Sprintf("./templates/images/%s", input.Body.Logo)
 		image, err := utils.GetImageBase64(imagePath)
 
 		if err != nil {
 			logger.Error(err.Error())
-			return nil, err
+			return err
 		}
 		component := templates.Hello(
 			input.Body.InvoiceID,
@@ -27,8 +27,8 @@ func Create(logger *slog.Logger, gotenClient *pdfClient.PdfClient) func(input *G
 		err = gotenClient.GeneratePdfFromComponent(component)
 		if err != nil {
 			logger.Error(err.Error())
-			return nil, err
+			return err
 		}
-		return &GenerateOutput{}, nil
+		return nil
 	}
 }

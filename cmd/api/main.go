@@ -16,13 +16,16 @@ import (
 	"time"
 )
 
+var (
+	logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
+	cfg    = config.New()
+)
+
 // main is the entry point of the application
 func main() {
-	cfg := config.New()
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	r := router(cfg, logger)
 	srv := configureServer(cfg, r, logger)
-	runServer(srv, logger)
+	runServer(srv)
 }
 
 // configureServer creates and configures an HTTP server.
@@ -46,12 +49,12 @@ func configureServer(cfg *config.Conf, router http.Handler, logger *slog.Logger)
 // router creates the application routes for the api
 // it also initializes a gotenClient for PDF generation
 func router(cfg *config.Conf, logger *slog.Logger) http.Handler {
-	gotenClient := pdfClient.New(cfg.Goten, logger)
+	gotenClient := pdfClient.New(cfg.Goten)
 	return apiRouter.New(logger, gotenClient)
 }
 
 // runServer server run context
-func runServer(srv *http.Server, logger *slog.Logger) {
+func runServer(srv *http.Server) {
 	// server run context
 	serverCtx, serverStopCtx := context.WithCancelCause(context.Background())
 	// listen for syscall signals for process to interrupt/quit

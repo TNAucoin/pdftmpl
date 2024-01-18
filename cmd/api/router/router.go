@@ -34,8 +34,9 @@ func New(logger *slog.Logger, gotenClient *pdfClient.PdfClient) *chi.Mux {
 		Path:          "/v1/generate",
 		DefaultStatus: http.StatusCreated,
 	}, func(ctx context.Context, input *generator.GenerateInput) (*generator.GenerateOutput, error) {
-		_, err := generator.Create(logger, gotenClient)(input)
+		err := generator.Create(logger, gotenClient)(input)
 		if err != nil {
+			logger.Error(err.Error())
 			return nil, err
 		}
 		return nil, nil
