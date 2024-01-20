@@ -1,8 +1,5 @@
 version: "3"
 services:
-  gotenberg:
-    image: gotenberg/gotenberg:8
-    restart: always
   pdftempl:
     build: .
     env_file:
@@ -11,6 +8,3 @@ services:
       - "8000:8000"
     volumes:
       - ./pdfOut:/containerOut
-    depends_on:
-      gotenberg:
-        condition: service_started

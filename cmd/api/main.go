@@ -17,8 +17,10 @@ import (
 )
 
 var (
-	logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
-	cfg    = config.New()
+	logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}))
+	cfg = config.New()
 )
 
 // main is the entry point of the application

@@ -1,31 +1,47 @@
-# Specify Go version and Build Stage
-FROM golang:1.21-alpine AS build-env
-
-# Set Work Directory
-WORKDIR /myapp
-
-# Copy source files
+# Build Stage - Golang dependencies and app build
+FROM golang:1.21-alpine AS go-builder
+WORKDIR /app
+# Copy Go Module files and download dependencies
+COPY go.mod go.sum ./
+RUN go mod download
+# Copy source files and build the app
 COPY . .
-
-# Install dependencies and build the app
 RUN go mod tidy && \
-    go build -o ./bin/api ./cmd/api/
+    go build -o ./bin/api ./cmd/api
 
-# Final Stage - production environment
-FROM alpine
-
-# Create and switch to a user
-#RUN adduser -D -g '' appuser
-#USER appuser
-
-# Copy only the built binary from the build stage
-COPY --from=build-env /myapp/bin/api /bin/api
-
-# Copy static assets
-COPY --from=build-env /myapp/templates /templates
-
-# Expose port for the app
+# Final Stage - Build a small runtime image
+FROM python:3.11-slim-bullseye
+WORKDIR /app
+# Update and install system libraries
+RUN apt-get update && apt-get install -y \
+    # essential libraries for WeasyPrint
+    build-essential \
+    python3-dev \
+    python3-setuptools \
+    python3-wheel \
+    python3-pip \
+    python3-cffi \
+    libcairo2 \
+    libpango1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf2.0-0 \
+    libffi-dev \
+    shared-mime-info \
+    fontconfig \
+    fonts-dejavu \
+    # clean up unused files
+    && rm -rf /var/lib/apt/lists/*
+# Install WeasyPrint
+RUN pip install WeasyPrint
+# Copy necessary files from build stages
+COPY --from=go-builder /app/bin/api /api
+COPY --from=go-builder /app/templates /templates
+# Custom fonts
+COPY /weasyprint/fonts/*.ttf /usr/share/fonts/
+COPY /weasyprint/fonts/*.otf /usr/share/fonts/
+# Update font cache
+RUN fc-cache -f -v
+# Expose required port
 EXPOSE 4000
-
 # Run the binary
-CMD ["/bin/api"]
+CMD ["/api"]

@@ -33,7 +33,7 @@ func New(gotenConfig config.ConfGoten) *PdfClient {
 	}
 }
 
-func (p *PdfClient) renderDocument(component templ.Component) (*bytes.Buffer, error) {
+func (p *PdfClient) RenderDocument(component templ.Component) (*bytes.Buffer, error) {
 	var b bytes.Buffer
 	err := component.Render(context.Background(), &b)
 	return &b, err
@@ -93,7 +93,7 @@ func (p *PdfClient) convertHTMLToPDF(formData bytes.Buffer, contentType string) 
 }
 
 func (p *PdfClient) GeneratePdfFromComponent(component templ.Component) error {
-	componentBytes, err := p.renderDocument(component)
+	componentBytes, err := p.RenderDocument(component)
 	if err != nil {
 		return err
 	}
