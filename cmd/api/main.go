@@ -33,14 +33,14 @@ type Application struct {
 // This function does not return any value.
 func main() {
 	cfg := config.New()
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+	l := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: setLogLevel(cfg.Server.LogLevel),
 	}))
-	weasyPrint := weasyPrintClient.New(logger)
+	wp := weasyPrintClient.New(l)
 	app := &Application{
-		logger:     logger,
+		logger:     l,
 		config:     cfg,
-		weasyPrint: weasyPrint,
+		weasyPrint: wp,
 	}
 	srv := configureServer(app)
 	runServer(srv)
