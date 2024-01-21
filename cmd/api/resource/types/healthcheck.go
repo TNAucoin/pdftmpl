@@ -1,4 +1,4 @@
-package health
+package types
 
 type HealthInput struct{}
 

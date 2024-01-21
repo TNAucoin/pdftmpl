@@ -1,4 +1,4 @@
-package generator
+package types
 
 type GenerateInput struct {
 	Body struct {

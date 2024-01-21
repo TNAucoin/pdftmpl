@@ -1,18 +1,15 @@
-package router
+package main
 
 import (
 	"context"
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
-	"github.com/tnaucoin/pdftmpl/cmd/api/resource/generator"
-	"github.com/tnaucoin/pdftmpl/cmd/api/resource/health"
-	"github.com/tnaucoin/pdftmpl/internal/pdfClient"
-	"log/slog"
+	"github.com/tnaucoin/pdftmpl/cmd/api/resource/types"
 	"net/http"
 )
 
-func New(logger *slog.Logger, gotenClient *pdfClient.PdfClient) *chi.Mux {
+func (app *Application) Router() *chi.Mux {
 	r := chi.NewRouter()
 	api := humachi.New(r, huma.DefaultConfig("PDF Generator API", "1.0.0"))
 
@@ -22,8 +19,8 @@ func New(logger *slog.Logger, gotenClient *pdfClient.PdfClient) *chi.Mux {
 		Method:        http.MethodGet,
 		Path:          "/livez",
 		DefaultStatus: http.StatusOK,
-	}, func(ctx context.Context, input *health.HealthInput) (*health.HealthOutput, error) {
-		resp := health.GetHealth()
+	}, func(ctx context.Context, input *types.HealthInput) (*types.HealthOutput, error) {
+		resp := GetHealth()
 		return resp, nil
 	})
 
@@ -33,10 +30,10 @@ func New(logger *slog.Logger, gotenClient *pdfClient.PdfClient) *chi.Mux {
 		Method:        http.MethodPost,
 		Path:          "/v1/generate",
 		DefaultStatus: http.StatusCreated,
-	}, func(ctx context.Context, input *generator.GenerateInput) (*generator.GenerateOutput, error) {
-		err := generator.Create(logger, gotenClient)(input)
+	}, func(ctx context.Context, input *types.GenerateInput) (*types.GenerateOutput, error) {
+		err := generatePdfPost(app)(input)
 		if err != nil {
-			logger.Error(err.Error())
+			app.logger.Error(err.Error())
 			return nil, err
 		}
 		return nil, nil
