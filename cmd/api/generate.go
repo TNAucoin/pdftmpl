@@ -5,31 +5,40 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/a-h/templ"
 	"github.com/tnaucoin/pdftmpl/cmd/api/resource/types"
 	"github.com/tnaucoin/pdftmpl/internal/weasyPrintClient"
 	"github.com/tnaucoin/pdftmpl/templates"
-	"github.com/tnaucoin/pdftmpl/utils"
 	"io"
 	"os"
 	"strconv"
 )
 
+var (
+	ErrTemplateNotFound = errors.New("provided input doesn't match any templates")
+)
+
+func selectTemplate(i any) (templ.Component, error) {
+	switch v := i.(type) {
+	case *types.GenerateInput:
+		return templates.Hello(
+			strconv.FormatUint(v.Body.InvoiceID, 10),
+			v.Body.RecipientName,
+			v.Body.RecipientAddress,
+			v.Body.RecipientEmail,
+			"",
+		), nil
+	default:
+		return nil, ErrTemplateNotFound
+	}
+}
+
 func generatePdfPost(app *Application) func(input *types.GenerateInput) error {
 	return func(input *types.GenerateInput) error {
-		imagePath := fmt.Sprintf("./templates/images/%s", input.Body.Logo)
-		image, err := utils.GetImageBase64(imagePath)
-
+		component, err := selectTemplate(input)
 		if err != nil {
-			app.logger.Error(err.Error())
 			return err
 		}
-		component := templates.Hello(
-			strconv.FormatUint(input.Body.InvoiceID, 10),
-			input.Body.RecipientName,
-			input.Body.RecipientAddress,
-			input.Body.RecipientEmail,
-			image,
-		)
 		var doc bytes.Buffer
 		err = component.Render(context.Background(), &doc)
 		if err != nil {
