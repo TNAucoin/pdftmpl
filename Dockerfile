@@ -1,13 +1,24 @@
-# Build Stage - Golang dependencies and app build
+# Base image
 FROM golang:1.21-alpine AS go-builder
+
+# Set working directory
 WORKDIR /app
-# Copy Go Module files and download dependencies
+
+# Copy Go mod and sum files
 COPY go.mod go.sum ./
+
+# Download dependencies
 RUN go mod download
-# Copy source files and build the app
+
+# Copy all source files
 COPY . .
+
+# Tidy up, compile the application, and clean up after build to reduce image size
 RUN go mod tidy && \
-    go build -o ./bin/api ./cmd/api
+    go build -o ./bin/api ./cmd/api && \
+    go clean -testcache && \
+    rm -rf /go/pkg && \
+    rm -rf /go/src
 
 # Final Stage - Build a small runtime image
 FROM python:3.11-slim-bullseye

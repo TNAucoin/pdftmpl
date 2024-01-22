@@ -17,13 +17,13 @@ type WeasyPrintClient struct {
 	logger *slog.Logger
 }
 
-func New(logger *slog.Logger) *WeasyPrintClient {
-	return &WeasyPrintClient{
+func New(logger *slog.Logger) WeasyPrintClient {
+	return WeasyPrintClient{
 		logger: logger,
 	}
 }
 
-func (wp *WeasyPrintClient) GeneratePDF(in io.Reader, out io.Writer) error {
+func (wp WeasyPrintClient) GeneratePDF(in io.Reader, out io.Writer) error {
 	startTime := time.Now()
 	c := exec.Command("weasyprint", "-", "-")
 	c.Stdin = in

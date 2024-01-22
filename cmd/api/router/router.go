@@ -13,7 +13,7 @@ import (
 	"net/http"
 )
 
-func New(logger *slog.Logger, wpc *weasyPrintClient.WeasyPrintClient, cfg *config.Conf) *chi.Mux {
+func New(logger *slog.Logger, wpc weasyPrintClient.WeasyPrintClient, cfg *config.Conf) *chi.Mux {
 	healthHandler := health.New()
 	invoiceGeneratorHandler := generate.New(logger, wpc, cfg.Server.VolumeOutPath)
 	ticketGeneratorHandler := ticket.New(logger, wpc, cfg.Server.VolumeOutPath)

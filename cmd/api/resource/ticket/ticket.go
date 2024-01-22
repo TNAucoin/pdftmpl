@@ -14,11 +14,11 @@ type GenerateTicketResponse struct{}
 
 type Handler struct {
 	logger  *slog.Logger
-	wpc     *weasyPrintClient.WeasyPrintClient
+	wpc     weasyPrintClient.WeasyPrintClient
 	outPath string
 }
 
-func New(logger *slog.Logger, wpc *weasyPrintClient.WeasyPrintClient, outPath string) *Handler {
+func New(logger *slog.Logger, wpc weasyPrintClient.WeasyPrintClient, outPath string) *Handler {
 	return &Handler{
 		logger,
 		wpc,
