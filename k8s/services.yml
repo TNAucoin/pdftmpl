@@ -14,21 +14,3 @@ spec:
       port: 8000
       targetPort: 8000
     type: NodePort
----
-
-apiVersion: v1
-kind: Service
-metadata:
-    name: gotenberg
-    namespace: pdfgen
-    labels:
-        app: gotenberg-app
-spec:
-    selector:
-        app: gotenberg-app
-    ports:
-    - name: gotenport
-      protocol: TCP
-      port: 3000
-      targetPort: 3000
-    type: ClusterIP
