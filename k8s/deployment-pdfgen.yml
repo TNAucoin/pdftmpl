@@ -47,10 +47,10 @@ spec:
             failureThreshold: 3
           resources:
             requests:
-              memory: "256M"
+              memory: "1024M"
               cpu: "0.5"
             limits:
-              memory: "2048Mi"
+              memory: "2056M"
               cpu: "1"
       volumes:
         - name: pdf-vol

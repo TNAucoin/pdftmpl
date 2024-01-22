@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/go-chi/chi/v5"
+	"github.com/tnaucoin/pdftmpl/cmd/api/router"
 	"github.com/tnaucoin/pdftmpl/config"
 	"github.com/tnaucoin/pdftmpl/internal/weasyPrintClient"
 	"log"
@@ -16,12 +18,6 @@ import (
 	"time"
 )
 
-type Application struct {
-	logger     *slog.Logger
-	config     *config.Conf
-	weasyPrint *weasyPrintClient.WeasyPrintClient
-}
-
 // main initializes and starts the PDF Generator API server.
 // It performs the following steps:
 // - Creates a new configuration using config.New().
@@ -33,16 +29,12 @@ type Application struct {
 // This function does not return any value.
 func main() {
 	cfg := config.New()
-	l := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: setLogLevel(cfg.Server.LogLevel),
 	}))
-	wp := weasyPrintClient.New(l)
-	app := &Application{
-		logger:     l,
-		config:     cfg,
-		weasyPrint: wp,
-	}
-	srv := configureServer(app)
+	wpc := weasyPrintClient.New(logger)
+	mux := router.New(logger, wpc, cfg)
+	srv := configureServer(cfg, logger, mux)
 	runServer(srv)
 }
 
@@ -55,14 +47,14 @@ func main() {
 // - ReadTimeout: The read timeout value from the Application's config.
 // - ErrorLog: A logger configured with the Application's logger and the logging level set to Error.
 // This function returns the configured http.Server instance.
-func configureServer(app *Application) *http.Server {
+func configureServer(cfg *config.Conf, logger *slog.Logger, mux *chi.Mux) *http.Server {
 	return &http.Server{
-		Addr:         fmt.Sprintf(":%d", app.config.Server.Port),
-		Handler:      app.Router(),
-		IdleTimeout:  app.config.Server.TimeoutIdle,
-		WriteTimeout: app.config.Server.TimeoutWrite,
-		ReadTimeout:  app.config.Server.TimeoutRead,
-		ErrorLog:     slog.NewLogLogger(app.logger.Handler(), slog.LevelError),
+		Addr:         fmt.Sprintf(":%d", cfg.Server.Port),
+		Handler:      mux,
+		IdleTimeout:  cfg.Server.TimeoutIdle,
+		WriteTimeout: cfg.Server.TimeoutWrite,
+		ReadTimeout:  cfg.Server.TimeoutRead,
+		ErrorLog:     slog.NewLogLogger(logger.Handler(), slog.LevelError),
 	}
 }
 
